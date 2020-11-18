@@ -30,9 +30,10 @@ class OverrideeProcessor: AbstractTestProcessor() {
     override fun toResult() = results
 
     override fun process(resolver: Resolver) {
-        logSubject(resolver, "Subject");
-        logSubject(resolver, "JavaSubject.Subject");
-        logSubject(resolver, "lib.Subject");
+//        logSubject(resolver, "Subject");
+//        logSubject(resolver, "JavaSubject.Subject");
+//        logSubject(resolver, "lib.Subject");
+        logSubject(resolver, "Foo");
     }
 
     private fun logSubject(resolver: Resolver, qName:String) {

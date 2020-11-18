@@ -86,6 +86,22 @@ abstract class Subject: Base<String>() {
 }
 // MODULE: main(lib)
 // FILE: a.kt
+interface ITF {
+    fun openFoo(): Int { return 1}
+    fun absFoo(): Unit
+}
+
+abstract class ABS: ITF {
+    override fun absFoo(): Unit {val a = 1}
+    override fun openFoo(): Int { return 2 }
+}
+
+class Foo: ABS(), ITF {
+    override fun absFoo(): Unit {
+        TODO("Not yet implemented")
+    }
+}
+
 abstract class GrandBase {
     open fun openGrandBaseFun() {}
     abstract fun abstractGrandBaseFun()
