@@ -6,9 +6,9 @@ plugins {
 version = "1.0-SNAPSHOT"
 
 kotlin {
-    jvm {
-        withJava()
-    }
+//    jvm {
+//        withJava()
+//    }
     linuxX64() {
         binaries {
             executable()
@@ -27,8 +27,8 @@ kotlin {
 
 dependencies {
     add("kspMetadata", project(":test-processor"))
-    add("kspJvm", project(":test-processor"))
-    add("kspJvmTest", project(":test-processor"))
+//    add("kspJvm", project(":test-processor"))
+//    add("kspJvmTest", project(":test-processor"))
     add("kspLinuxX64", project(":test-processor"))
     add("kspLinuxX64Test", project(":test-processor"))
     add("kspMingwX64", project(":test-processor"))
