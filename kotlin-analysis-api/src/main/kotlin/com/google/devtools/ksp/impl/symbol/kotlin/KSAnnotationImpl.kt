@@ -9,9 +9,9 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Location
 import com.google.devtools.ksp.symbol.Origin
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KtAnnotationCall
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationApplication
 
-class KSAnnotationImpl(private val annotationCall: KtAnnotationCall) : KSAnnotation {
+class KSAnnotationImpl(private val annotationCall: KtAnnotationApplication) : KSAnnotation {
     override val annotationType: KSTypeReference
         get() = TODO("Not yet implemented")
     override val arguments: List<KSValueArgument> by lazy {

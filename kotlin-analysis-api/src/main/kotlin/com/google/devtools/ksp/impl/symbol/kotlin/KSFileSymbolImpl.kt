@@ -49,7 +49,7 @@ class KSFileSymbolImpl(private val ktFile: KtFile) : KSFile {
 
     override val annotations: Sequence<KSAnnotation> by lazy {
         analyseWithReadAction(ktFile) {
-            ktFile.getFileSymbol().annotations.map { KSAnnotationImpl(it) }.asSequence()
+            ktFile.getFileSymbol().annotationsList.annotations.map { KSAnnotationImpl(it) }.asSequence()
         }
     }
 }

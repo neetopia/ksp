@@ -92,7 +92,7 @@ class KSClassDeclarationImpl(private val ktNamedClassOrObjectSymbol: KtNamedClas
 
     override val annotations: Sequence<KSAnnotation> by lazy {
         analyzeWithSymbolAsContext(ktNamedClassOrObjectSymbol) {
-            ktNamedClassOrObjectSymbol.annotations.map { KSAnnotationImpl(it) }.asSequence()
+            ktNamedClassOrObjectSymbol.annotationsList.annotations.map { KSAnnotationImpl(it) }.asSequence()
         }
     }
     override val isActual: Boolean

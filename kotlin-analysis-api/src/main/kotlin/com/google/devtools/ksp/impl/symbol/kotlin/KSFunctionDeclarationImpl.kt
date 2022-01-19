@@ -43,7 +43,7 @@ class KSFunctionDeclarationImpl(private val ktFunctionSymbol: KtFunctionLikeSymb
     }
     override val returnType: KSTypeReference? by lazy {
         analyzeWithSymbolAsContext(ktFunctionSymbol) {
-            KSTypeReferenceImpl(ktFunctionSymbol.annotatedType)
+            KSTypeReferenceImpl(ktFunctionSymbol.returnType)
         }
     }
     override val parameters: List<KSValueParameter> by lazy {
@@ -94,7 +94,7 @@ class KSFunctionDeclarationImpl(private val ktFunctionSymbol: KtFunctionLikeSymb
     }
 
     override val annotations: Sequence<KSAnnotation> by lazy {
-        (ktFunctionSymbol as KtAnnotatedSymbol).annotations.asSequence().map { KSAnnotationImpl(it) }
+        (ktFunctionSymbol as KtAnnotatedSymbol).annotationsList.annotations.asSequence().map { KSAnnotationImpl(it) }
     }
     override val isActual: Boolean
         get() = TODO("Not yet implemented")

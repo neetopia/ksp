@@ -7,11 +7,11 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Location
 import com.google.devtools.ksp.symbol.Origin
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedConstantValue
+import org.jetbrains.kotlin.analysis.api.annotations.KtNamedAnnotationValue
 
-class KSValueArgumentImpl(private val namedConstantValue: KtNamedConstantValue) : KSValueArgument {
+class KSValueArgumentImpl(private val namedConstantValue: KtNamedAnnotationValue) : KSValueArgument {
     override val name: KSName? by lazy {
-        KSNameImpl(namedConstantValue.name)
+        KSNameImpl(namedConstantValue.name.asString())
     }
     override val isSpread: Boolean = false
     override val value: Any? = namedConstantValue.expression

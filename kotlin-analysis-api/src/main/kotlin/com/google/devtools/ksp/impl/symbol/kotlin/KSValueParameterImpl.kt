@@ -14,7 +14,7 @@ class KSValueParameterImpl(private val ktValueParameterSymbol: KtValueParameterS
     override val name: KSName?
         get() = TODO("Not yet implemented")
     override val type: KSTypeReference by lazy {
-        KSTypeReferenceImpl(ktValueParameterSymbol.annotatedType)
+        KSTypeReferenceImpl(ktValueParameterSymbol.returnType)
     }
 
     override val isVararg: Boolean by lazy {
@@ -32,7 +32,7 @@ class KSValueParameterImpl(private val ktValueParameterSymbol: KtValueParameterS
         ktValueParameterSymbol.hasDefaultValue
     }
     override val annotations: Sequence<KSAnnotation> by lazy {
-        ktValueParameterSymbol.annotations.asSequence().map { KSAnnotationImpl(it) }
+        ktValueParameterSymbol.annotationsList.annotations.asSequence().map { KSAnnotationImpl(it) }
     }
     override val origin: Origin
         get() = TODO("Not yet implemented")
