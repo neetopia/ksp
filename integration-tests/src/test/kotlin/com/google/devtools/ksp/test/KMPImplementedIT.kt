@@ -81,7 +81,7 @@ class KMPImplementedIT {
             "--configuration-cache-problems=warn",
             "clean",
             ":workload-js:build"
-        ).build().let {
+        ).withDebug(true).build().let {
             Assert.assertEquals(TaskOutcome.SUCCESS, it.task(":workload-js:build")?.outcome)
             verify(
                 "workload-js/build/libs/workload-js-jslegacy-1.0-SNAPSHOT.jar",
@@ -306,7 +306,7 @@ class KMPImplementedIT {
             "--configuration-cache-problems=warn",
             "clean",
             "build",
-            "-Pksp.allow.all.target.configuration=false"
+            "-Pksp.allow.all.target.configuration=false",
         ).buildAndFail().apply {
             Assert.assertTrue(
                 messages.all {

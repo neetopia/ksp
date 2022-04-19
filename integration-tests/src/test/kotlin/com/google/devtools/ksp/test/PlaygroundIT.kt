@@ -45,7 +45,7 @@ class PlaygroundIT {
         // FIXME: `clean` fails to delete files on windows.
         Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows", ignoreCase = true))
         val gradleRunner = GradleRunner.create().withProjectDir(project.root)
-        gradleRunner.buildAndCheck("clean", "build")
+        gradleRunner.buildAndCheck("clean", "build", "--stacktrace")
         gradleRunner.buildAndCheck("clean", "build")
     }
 
