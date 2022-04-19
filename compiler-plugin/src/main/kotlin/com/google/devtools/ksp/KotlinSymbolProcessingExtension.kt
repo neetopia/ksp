@@ -172,6 +172,8 @@ abstract class AbstractKotlinSymbolProcessingExtension(
         }?.let { return@doAnalysis it }
 
         // dirtyFiles cannot be reused because they are created in the old container.
+        val f = File("/Users/jiaxiang/code/tmp.log")
+        newFiles.forEach { f.appendText("${it.filePath}\n") }
         val resolver = ResolverImpl(
             module,
             ksFiles.filterNot {

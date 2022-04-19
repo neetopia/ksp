@@ -197,7 +197,7 @@ class GradleCompilationTest {
                 
             """.trimIndent()
         )
-        val result = testRule.runner().withArguments(":app:assembleDebug").build()
+        val result = testRule.runner().withArguments(":app:assembleDebug", "--stacktrace").build()
         val pattern1 = Regex.escape("apoption=room.schemaLocation=")
         val pattern2 = Regex.escape("${testRule.appModule.moduleRoot}/schemas")
         assertThat(result.output).containsMatch("$pattern1\\S*$pattern2")
