@@ -1,16 +1,12 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap/")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/")
         maven("https://www.jetbrains.com/intellij-repository/snapshots")
     }
     val kotlinBaseVersion: String by settings
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "org.jetbrains.kotlin.jvm") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinBaseVersion")
-            }
-        }
+    plugins {
+        id("org.jetbrains.kotlin.jvm") version kotlinBaseVersion
     }
 }
 

@@ -52,7 +52,7 @@ class AndroidIncrementalIT {
 
         gradleRunner.withArguments(
             ":application:compileDebugKotlin", "--configuration-cache-problems=warn", "--debug", "--stacktrace"
-        ).build().let { result ->
+        ).withDebug(true).build().let { result ->
             Assert.assertEquals(
                 setOf("workload/src/main/java/com/example/A.kt".replace('/', File.separatorChar)),
                 BuildResultFixture(result).compiledKotlinSources,
