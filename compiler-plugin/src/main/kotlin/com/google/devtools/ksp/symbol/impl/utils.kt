@@ -55,7 +55,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getOwnerForEffectiveDispatchReceiverParameter
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.*
 import kotlin.Comparator
 import kotlin.collections.ArrayDeque
@@ -459,8 +458,8 @@ internal val KSDeclarationContainer.declarationsInSourceOrder: Sequence<KSDeclar
         if (this !is KSClassDeclarationDescriptorImpl || origin != Origin.KOTLIN_LIB)
             return declarations
 
-        val declarationOrdering = descriptor.safeAs<DeserializedClassDescriptor>()
-            ?.source.safeAs<KotlinJvmBinarySourceElement>()?.binaryClass?.let {
+        val declarationOrdering = ((descriptor as? DeserializedClassDescriptor)
+            ?.source as? KotlinJvmBinarySourceElement)?.binaryClass?.let {
                 DeclarationOrdering(it)
             } ?: return declarations
 
@@ -480,7 +479,7 @@ internal val KSPropertyDeclaration.jvmAccessFlag: Int
         }
         Origin.JAVA_LIB -> {
             val descriptor = (this as KSPropertyDeclarationDescriptorImpl).descriptor
-            descriptor.source.safeAs<JavaSourceElement>()?.javaElement.safeAs<BinaryJavaField>()?.access ?: 0
+            ((descriptor.source as? JavaSourceElement)?.javaElement as? BinaryJavaField)?.access ?: 0
         }
         else -> throw IllegalStateException("this function expects only KOTLIN_LIB or JAVA_LIB")
     }
@@ -499,7 +498,7 @@ internal val KSFunctionDeclaration.jvmAccessFlag: Int
         Origin.JAVA_LIB -> {
             val descriptor = (this as KSFunctionDeclarationDescriptorImpl).descriptor
             // Some functions, like `equals` in builtin types, doesn't have source.
-            descriptor.source.safeAs<JavaSourceElement>()?.javaElement.safeAs<BinaryJavaMethodBase>()?.access ?: 0
+            ((descriptor.source as? JavaSourceElement)?.javaElement as? BinaryJavaMethodBase)?.access ?: 0
         }
         else -> throw IllegalStateException("this function expects only KOTLIN_LIB or JAVA_LIB")
     }

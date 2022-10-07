@@ -171,7 +171,7 @@ object BinaryClassInfoCache : KSObjectCache<ClassId, BinaryClassInfo>() {
     fun getCached(
         kotlinJvmBinaryClass: KotlinJvmBinaryClass,
     ) = cache.getOrPut(kotlinJvmBinaryClass.classId) {
-        val virtualFileContent = kotlinJvmBinaryClass.safeAs<VirtualFileKotlinClass>()?.file?.contentsToByteArray()
+        val virtualFileContent = (kotlinJvmBinaryClass as? VirtualFileKotlinClass)?.file?.contentsToByteArray()
         val fieldAccFlags = mutableMapOf<String, Int>()
         val methodAccFlags = mutableMapOf<String, Int>()
         ClassReader(virtualFileContent).accept(
@@ -217,7 +217,7 @@ private fun DeserializedPropertyDescriptor.hasBackingFieldInBinaryClass(): Boole
         // Companion objects have backing fields in containing classes.
         // https://kotlinlang.org/docs/java-to-kotlin-interop.html#static-fields
         val container = containingDeclaration.containingDeclaration as? DeserializedClassDescriptor
-        container?.source?.safeAs<KotlinJvmBinarySourceElement>()?.binaryClass
+        (container?.source as? KotlinJvmBinarySourceElement)?.binaryClass
     } else {
         this.getContainingKotlinJvmBinaryClass()
     } ?: return false

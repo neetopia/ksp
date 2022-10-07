@@ -21,6 +21,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinBaseVersion")
     implementation("org.jetbrains.kotlin:kotlin-compiler-internal-test-framework:$kotlinBaseVersion")
+    implementation("org.jetbrains.kotlin:analysis-api-test-framework:$kotlinBaseVersion")
 
     implementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
 
