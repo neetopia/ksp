@@ -253,7 +253,7 @@ internal fun ClassId.toKtClassSymbol(): KtClassOrObjectSymbol? {
                 it.asString() == this@toKtClassSymbol.shortClassName.asString()
             }?.singleOrNull() as? KtClassOrObjectSymbol
         } else {
-            this@toKtClassSymbol.getCorrespondingToplevelClassOrObjectSymbol()
+            getClassOrObjectSymbolByClassId(this@toKtClassSymbol)
         }
     }
 }
