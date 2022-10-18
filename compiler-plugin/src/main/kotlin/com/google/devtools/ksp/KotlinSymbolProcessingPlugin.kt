@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.config.toKotlinVersion
 import org.jetbrains.kotlin.resolve.extensions.AnalysisHandlerExtension
+import java.io.File
 
 private val KSP_OPTIONS = CompilerConfigurationKey.create<KspOptions.Builder>("Ksp options")
 
@@ -61,9 +62,15 @@ class KotlinSymbolProcessingCommandLineProcessor : CommandLineProcessor {
 //
 // Third party libraries:
 //   https://github.com/tschuchortdev/kotlin-compile-testing
+@Suppress("DEPRECATION")
 @ExperimentalCompilerApi
 class KotlinSymbolProcessingComponentRegistrar : ComponentRegistrar {
     override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
+        try {
+            throw IllegalStateException()
+        } catch (e: Exception) {
+            File("/tmp/log").appendText("${e.stackTrace.joinToString(separator = "\n", postfix = "\n=====\n") { it.toString() }}")
+        }
         val contentRoots = configuration[CLIConfigurationKeys.CONTENT_ROOTS] ?: emptyList()
         val options = configuration[KSP_OPTIONS]?.apply {
             javaSourceRoots.addAll(contentRoots.filterIsInstance<JavaSourceRoot>().map { it.file })
@@ -71,6 +78,8 @@ class KotlinSymbolProcessingComponentRegistrar : ComponentRegistrar {
             apiVersion = configuration.languageVersionSettings.apiVersion.toKotlinVersion()
             compilerVersion = KotlinCompilerVersion.getVersion().toKotlinVersion()
         }?.build() ?: return
+        File("/tmp/log").appendText("${options.kotlinOutputDir.path}\n")
+        File("/tmp/log").appendText("${options.processingClasspath.joinToString { it.path }}\n")
         val messageCollector = configuration.get(CLIConfigurationKeys.ORIGINAL_MESSAGE_COLLECTOR_KEY)
             ?: throw IllegalStateException("ksp: message collector not found!")
         val wrappedMessageCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)

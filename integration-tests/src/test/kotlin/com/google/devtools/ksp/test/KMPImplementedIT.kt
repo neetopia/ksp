@@ -58,7 +58,7 @@ class KMPImplementedIT {
     @Test
     fun testJvmErrorLog() {
         Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows", ignoreCase = true))
-        val gradleRunner = GradleRunner.create().withProjectDir(project.root)
+        val gradleRunner = GradleRunner.create().withDebug(true).withProjectDir(project.root)
 
         File(project.root, "workload-jvm/build.gradle.kts").appendText("\nksp { arg(\"exception\", \"process\") }\n")
         gradleRunner.withArguments(
@@ -75,7 +75,7 @@ class KMPImplementedIT {
     @Test
     fun testJs() {
         Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows", ignoreCase = true))
-        val gradleRunner = GradleRunner.create().withProjectDir(project.root)
+        val gradleRunner = GradleRunner.create().withDebug(true).withProjectDir(project.root)
 
         gradleRunner.withArguments(
             "--configuration-cache-problems=warn",
@@ -128,13 +128,13 @@ class KMPImplementedIT {
     @Test
     fun testAndroidNative() {
         Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows", ignoreCase = true))
-        val gradleRunner = GradleRunner.create().withProjectDir(project.root)
+        val gradleRunner = GradleRunner.create().withDebug(true).withProjectDir(project.root)
 
         gradleRunner.withArguments(
             "--configuration-cache-problems=warn",
             "clean",
             ":workload-androidNative:build"
-        ).build().let {
+        ).buildAndFail().let {
             Assert.assertEquals(TaskOutcome.SUCCESS, it.task(":workload-androidNative:build")?.outcome)
             verifyKexe(
                 "workload-androidNative/build/bin/androidNativeX64/debugExecutable/workload-androidNative.kexe"

@@ -11,6 +11,7 @@ kotlin {
     js(IR) {
         browser()
         nodejs()
+        binaries.executable()
     }
     linuxX64() {
     }

@@ -309,6 +309,7 @@ class KspGradleSubplugin @Inject internal constructor(private val registry: Tool
         }
 
         fun configureAsAbstractKotlinCompileTool(kspTask: AbstractKotlinCompileTool<*>) {
+//            (kspTask as CompileUsingKotlinDaemon).compilerExecutionStrategy.set(KotlinCompilerExecutionStrategy.IN_PROCESS)
             kspTask.destinationDirectory.set(kspOutputDir)
             kspTask.outputs.dirs(
                 kotlinOutputDir,
@@ -772,9 +773,11 @@ abstract class KspTaskJS @Inject constructor(
         }
         args.addPluginOptions(options.get())
         args.outputFile = File(destination, "dummyOutput.js").canonicalPath
-        kotlinOptions.copyFreeCompilerArgsToArgs(args)
         args.useK2 = false
+        args.irProduceKlibDir = true
+        args.outputDir = destination.canonicalPath
         (compilerOptions as CompilerJsOptionsDefault).fillCompilerArguments(args)
+        args.libraries = libraries.joinToString(separator = File.pathSeparator) { it.path }
     }
 
     // Overrding an internal function is hacky.
