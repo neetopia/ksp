@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationsList
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.types.*
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class KSTypeImpl private constructor(internal val type: KtType) : KSType {
     companion object : KSObjectCache<IdKeyPair<KtType, KtAnnotationsList>, KSTypeImpl>() {
@@ -69,7 +68,7 @@ class KSTypeImpl private constructor(internal val type: KtType) : KSType {
     }
 
     override val arguments: List<KSTypeArgument> by lazy {
-        type.safeAs<KtNonErrorClassType>()?.typeArguments?.map { KSTypeArgumentImpl.getCached(it) } ?: emptyList()
+        (type as? KtNonErrorClassType)?.typeArguments?.map { KSTypeArgumentImpl.getCached(it) } ?: emptyList()
     }
 
     override val annotations: Sequence<KSAnnotation>
@@ -80,7 +79,7 @@ class KSTypeImpl private constructor(internal val type: KtType) : KSType {
             return false
         }
         return analyze {
-            that.safeAs<KSTypeImpl>()?.type?.isSubTypeOf(type) == true
+            (that as? KSTypeImpl)?.type?.isSubTypeOf(type) == true
         }
     }
 

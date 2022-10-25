@@ -156,7 +156,7 @@ class KMPImplementedIT {
     @Test
     fun testLinuxX64() {
         Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows", ignoreCase = true))
-        val gradleRunner = GradleRunner.create().withProjectDir(project.root)
+        val gradleRunner = GradleRunner.create().withDebug(true).withProjectDir(project.root)
         val genDir = File(project.root, "workload-linuxX64/build/generated/ksp/linuxX64/linuxX64Main/kotlin")
 
         gradleRunner.withArguments(
@@ -233,14 +233,7 @@ class KMPImplementedIT {
         )
 
         verify(
-            "workload/build/libs/workload-jslegacy-1.0-SNAPSHOT.jar",
-            listOf(
-                "playground-workload-js-legacy.js"
-            )
-        )
-
-        verify(
-            "workload/build/libs/workload-jsir-1.0-SNAPSHOT.klib",
+            "workload/build/libs/workload-js-1.0-SNAPSHOT.klib",
             listOf(
                 "default/ir/types.knt"
             )

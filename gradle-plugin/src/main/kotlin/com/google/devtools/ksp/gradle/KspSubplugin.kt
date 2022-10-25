@@ -44,6 +44,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.GradleVersion
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
+import org.gradle.work.NormalizeLineEndings
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.config.ApiVersion
@@ -82,8 +83,6 @@ import kotlin.reflect.KProperty1
 internal class Configurator : AbstractKotlinCompileConfig<AbstractKotlinCompile<*>> {
     constructor(compilation: KotlinCompilationData<*>, kotlinCompile: AbstractKotlinCompile<*>) : super(compilation) {
         configureTask { task ->
-            task.moduleName.value(kotlinCompile.moduleName)
-            task.destinationDirectory.value(kotlinCompile.destinationDirectory)
             if (task is KspTaskJvm) {
                 // Assign ownModuleName different from kotlin compilation to
                 // work around https://github.com/google/ksp/issues/647
@@ -281,7 +280,7 @@ class KspGradleSubplugin @Inject internal constructor(private val registry: Tool
         }
 
         val target = kotlinCompilation.target.name
-        val sourceSetName = kotlinCompilation.defaultSourceSetName
+        val sourceSetName = kotlinCompilation.defaultSourceSet.name
         val classOutputDir = getKspClassOutputDir(project, sourceSetName, target)
         val javaOutputDir = getKspJavaOutputDir(project, sourceSetName, target)
         val kotlinOutputDir = getKspKotlinOutputDir(project, sourceSetName, target)
@@ -418,6 +417,12 @@ class KspGradleSubplugin @Inject internal constructor(private val registry: Tool
                         kspTask.compilerPluginClasspath = project.configurations.getByName(pluginConfigurationName)
                         kspTask.commonSources.from(kotlinCompileTask.commonSources)
                         kspTask.compilerPluginOptions.addPluginArgument(kotlinCompileTask.compilerPluginOptions)
+                        kotlinCompileTask.compilerPluginClasspath = null
+                        val supers = kotlinCompileTask.compilerOptions.freeCompilerArgs.get()
+                        val kspOptions = kspTask.options.get().flatMap { listOf("-P", it.toArg()) }
+                        kspTask.compilerOptions.freeCompilerArgs.value(
+                            kspOptions + supers
+                        )
                     }
                 }
             }
@@ -434,7 +439,6 @@ class KspGradleSubplugin @Inject internal constructor(private val registry: Tool
             kotlinCompile.setSource(kotlinOutputDir, javaOutputDir)
             when (kotlinCompile) {
                 is AbstractKotlinCompile<*> -> kotlinCompile.libraries.from(project.files(classOutputDir))
-                is KotlinNativeCompile -> kotlinCompile.libraries.from(project.files(classOutputDir))
                 // is KotlinNativeCompile -> TODO: support binary generation?
             }
         }
@@ -933,13 +937,13 @@ abstract class KspTaskNative @Inject constructor(
     providerFactory: ProviderFactory,
     execOperations: ExecOperations
 ) : KotlinNativeCompile(compilation, objectFactory, providerFactory, execOperations), KspTask {
-    override val additionalCompilerOptions: Provider<Collection<String>>
-        get() {
-            return project.provider {
-                val kspOptions = options.get().flatMap { listOf("-P", it.toArg()) }
-                super.additionalCompilerOptions.get() + kspOptions
-            }
-        }
+//    override val additionalCompilerOptions: Provider<Collection<String>>
+//        get() {
+//            return project.provider {
+//                val kspOptions = options.get().flatMap { listOf("-P", it.toArg()) }
+//                super.additionalCompilerOptions.get() + kspOptions
+//            }
+//        }
 
     override var compilerPluginClasspath: FileCollection? = null
         get() {
@@ -964,6 +968,10 @@ abstract class KspTaskNative @Inject constructor(
         options.get().single { it.key == "kspOutputDir" }.value.let {
             File(it).deleteRecursively()
         }
+//        compilerOptions.freeCompilerArgs.value(project.provider {
+//            val kspOptions = options.get().flatMap { listOf("-P", it.toArg()) }
+//            super.compilerOptions.freeCompilerArgs.get() + kspOptions
+//        })
         super.compile()
     }
 
