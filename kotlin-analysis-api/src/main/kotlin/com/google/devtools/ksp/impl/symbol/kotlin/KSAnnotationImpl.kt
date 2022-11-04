@@ -42,30 +42,31 @@ class KSAnnotationImpl private constructor(private val annotationApplication: Kt
     }
 
     override val arguments: List<KSValueArgument> by lazy {
-        val presentArgs = annotationApplication.arguments.map { KSValueArgumentImpl.getCached(it) }
+        val presentArgs = annotationApplication.arguments.map { KSValueArgumentImpl.getCached(it, Origin.KOTLIN) }
         val presentNames = presentArgs.mapNotNull { it.name?.asString() }
-        val absentArgs = analyze {
-            annotationApplication.classId?.toKtClassSymbol()?.let { symbol ->
-                symbol.getMemberScope().getConstructors().singleOrNull()?.let {
-                    it.valueParameters.filter { valueParameter ->
-                        valueParameter.name.asString() !in presentNames
-                    }.mapNotNull { valueParameterSymbol ->
-                        valueParameterSymbol.getDefaultValue()?.let { constantValue ->
-                            KSValueArgumentImpl.getCached(
-                                KtNamedAnnotationValue(
-                                    valueParameterSymbol.name, KtConstantAnnotationValue(constantValue)
-                                )
-                            )
-                        }
-                    }
-                }
-            } ?: emptyList<KSValueArgument>()
+        val absentArgs = defaultArguments.filter {
+            it.name?.asString() !in presentNames
         }
         presentArgs + absentArgs
     }
 
-    override val defaultArguments: List<KSValueArgument>
-        get() = TODO("Not yet implemented")
+    override val defaultArguments: List<KSValueArgument> by lazy {
+        analyze {
+            annotationApplication.classId?.toKtClassSymbol()?.let { symbol ->
+                symbol.getMemberScope().getConstructors().singleOrNull()?.let {
+                    it.valueParameters.mapNotNull { valueParameterSymbol ->
+                        valueParameterSymbol.getDefaultValue()?.let { constantValue ->
+                            KSValueArgumentImpl.getCached(
+                                KtNamedAnnotationValue(
+                                    valueParameterSymbol.name, KtConstantAnnotationValue(constantValue),
+                                ), Origin.SYNTHETIC
+                            )
+                        }
+                    }
+                }
+            } ?: emptyList()
+        }
+    }
 
     override val shortName: KSName by lazy {
         KSNameImpl.getCached(annotationApplication.classId!!.shortClassName.asString())
