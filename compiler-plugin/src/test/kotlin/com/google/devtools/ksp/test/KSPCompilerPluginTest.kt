@@ -297,6 +297,12 @@ class KSPCompilerPluginTest : AbstractKSPCompilerPluginTest() {
         runTest("../test-utils/testData/api/interfaceWithDefault.kt")
     }
 
+    @TestMetadata("isValVar.kt")
+    @Test
+    fun testIsValVar() {
+        runTest("../test-utils/testData/api/isValVar.kt")
+    }
+
     @TestMetadata("javaModifiers.kt")
     @Test
     fun testJavaModifiers() {
