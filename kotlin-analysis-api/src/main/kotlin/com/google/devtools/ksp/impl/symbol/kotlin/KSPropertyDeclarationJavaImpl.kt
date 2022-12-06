@@ -31,12 +31,12 @@ class KSPropertyDeclarationJavaImpl private constructor(private val ktJavaFieldS
     @OptIn(SymbolInternals::class)
     override val type: KSTypeReference by lazy {
         // FIXME: temporary workaround before upstream fixes java type refs.
-        ((ktJavaFieldSymbol as KtFirJavaFieldSymbol).firSymbol.fir as FirJavaField).also {
-            it.returnTypeRef = it.returnTypeRef.resolveIfJavaType(
-                it.moduleData.session,
-                (it.getContainingClass(it.moduleData.session) as FirJavaClass).javaTypeParameterStack
-            )
-        }
+//        ((ktJavaFieldSymbol as KtFirJavaFieldSymbol).firSymbol.fir as FirJavaField).also {
+//            it.returnTypeRef = it.returnTypeRef.resolveIfJavaType(
+//                it.moduleData.session,
+//                (it.getContainingClass(it.moduleData.session) as FirJavaClass).javaTypeParameterStack
+//            )
+//        }
         KSTypeReferenceImpl.getCached(ktJavaFieldSymbol.returnType, this@KSPropertyDeclarationJavaImpl)
     }
 

@@ -47,67 +47,6 @@
  */
 fun f1() = 0
 
-/**
- *
- * top level property
- *
- */
-val v1 = 0
-
-
-/** * Irregular doc comment 1***/
-val v2 = 0
-
-/**
- * Irregular doc comment 2*/
-val v3 = 0
-
-/** Irregular doc comment 3 *
- */
-val v4 = 0
-
-/**
- * unassociated doc comment
- */
-/**
- * owned doc comment
- */
-val v5 = 0
-
-/* Not doc comment 1 */
-val v6 = 0
-
-// Not doc comment 2
-val v7 = 0
-
-/**
- * top level class
- *
- * doc can have multiple lines
- *
- * third non-empty line
- */
-class TopClass {
-    /**
-     * nest class
-     */
-    class Nested
-
-    /**
-     * inner class
-     */
-    class Inner
-
-    /**
-     * member function
-     */
-    fun f2() = 0
-
-    /**
-     * member property
-     */
-    val v8 = 0
-}
 
 // FILE: JavaSrc.java
 /**
