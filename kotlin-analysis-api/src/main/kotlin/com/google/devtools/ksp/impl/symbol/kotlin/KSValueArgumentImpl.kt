@@ -66,7 +66,8 @@ class KSValueArgumentImpl private constructor(
 
     private fun KtAnnotationValue.toValue(): Any? = when (this) {
         is KtArrayAnnotationValue -> this.values.map { it.toValue() }
-        is KtAnnotationApplicationValue -> KSAnnotationImpl.getCached(this.annotationValue)
+        is KtAnnotationApplicationValue ->
+            KSAnnotationImpl.getCached(this.annotationValue, this@KSValueArgumentImpl)
         // TODO: Enum entry should return a type, use declaration as a placeholder.
         is KtEnumEntryAnnotationValue -> this.callableId?.classId?.let {
             analyze {

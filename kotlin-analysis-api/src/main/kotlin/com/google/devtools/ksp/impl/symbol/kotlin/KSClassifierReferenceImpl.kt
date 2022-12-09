@@ -34,4 +34,6 @@ class KSClassifierReferenceImpl private constructor(
 
     override val location: Location
         get() = parent?.location ?: NonExistLocation
+
+    override fun toString(): String = referencedName()
 }

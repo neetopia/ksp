@@ -87,7 +87,7 @@ class KSFileImpl private constructor(private val ktFileSymbol: KtFileSymbol) : K
     }
 
     override val annotations: Sequence<KSAnnotation> by lazy {
-        ktFileSymbol.annotations()
+        annotations(ktFileSymbol)
     }
 
     override fun toString(): String {

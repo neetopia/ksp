@@ -39,17 +39,24 @@ class KSTypeReferenceImpl private constructor(
     }
 
     override val element: KSReferenceElement? by lazy {
+        fun expandDefinitelyNotNull(ktType: KtType): KtType {
+            return when (ktType) {
+                is KtDefinitelyNotNullType -> expandDefinitelyNotNull(ktType.original)
+                else -> ktType
+            }
+        }
         if (parent == null || parent.origin == Origin.SYNTHETIC) {
             null
         } else {
-            when (ktType) {
-                is KtFunctionalType -> KSCallableReferenceImpl.getCached(ktType, this@KSTypeReferenceImpl)
+            val expandedType = expandDefinitelyNotNull(ktType)
+            when (expandedType) {
+                is KtFunctionalType -> KSCallableReferenceImpl.getCached(expandedType, this@KSTypeReferenceImpl)
                 is KtDynamicType -> KSDynamicReferenceImpl.getCached(this@KSTypeReferenceImpl)
-                is KtUsualClassType -> KSClassifierReferenceImpl.getCached(ktType, this@KSTypeReferenceImpl)
-                is KtFlexibleType -> KSClassifierReferenceImpl.getCached(
-                    ktType.lowerBound as KtUsualClassType,
-                    this@KSTypeReferenceImpl
-                )
+                is KtUsualClassType -> KSClassifierReferenceImpl.getCached(expandedType, this@KSTypeReferenceImpl)
+                is KtFlexibleType ->
+                    (expandDefinitelyNotNull(expandedType.lowerBound) as? KtUsualClassType)?.let {
+                        KSClassifierReferenceImpl.getCached(it, this@KSTypeReferenceImpl)
+                    }
                 is KtErrorType -> null
                 is KtTypeParameterType -> null
                 else -> throw IllegalStateException("Unexpected type element ${ktType.javaClass}, $ExceptionMessage")
@@ -71,7 +78,7 @@ class KSTypeReferenceImpl private constructor(
     }
 
     override val annotations: Sequence<KSAnnotation> by lazy {
-        ktType.annotations()
+        annotations(ktType)
     }
 
     override val origin: Origin = parent?.origin ?: Origin.SYNTHETIC

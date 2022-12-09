@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtNamedClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtTypeAliasSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedSymbol
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 
@@ -87,7 +88,13 @@ abstract class AbstractKSDeclarationImpl(val ktDeclarationSymbol: KtDeclarationS
     override val parent: KSNode? by lazy {
         analyze {
             ktDeclarationSymbol.getContainingSymbol()?.let {
-                KSClassDeclarationImpl.getCached(it as KtNamedClassOrObjectSymbol)
+                when (it) {
+                    is KtNamedClassOrObjectSymbol -> KSClassDeclarationImpl.getCached(it)
+                    is KtFunctionLikeSymbol -> KSFunctionDeclarationImpl.getCached(it)
+                    is KtPropertySymbol -> KSPropertyDeclarationImpl.getCached(it)
+                    is KtTypeAliasSymbol -> KSTypeAliasImpl.getCached(it)
+                    else -> throw IllegalStateException("Unexpected symbol type: ${it.javaClass}")
+                }
             } ?: ktDeclarationSymbol.toContainingFile()
         }
     }
@@ -99,5 +106,5 @@ abstract class AbstractKSDeclarationImpl(val ktDeclarationSymbol: KtDeclarationS
     override val docString: String?
         get() = ktDeclarationSymbol.toDocString()
 
-    internal val originalAnnotations = ktDeclarationSymbol.annotations()
+    internal val originalAnnotations = annotations(ktDeclarationSymbol)
 }

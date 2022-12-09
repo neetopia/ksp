@@ -27,6 +27,7 @@ import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.Nullability
 import org.jetbrains.kotlin.analysis.api.KtStarTypeProjection
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationsList
+import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.types.*
@@ -73,7 +74,7 @@ class KSTypeImpl private constructor(internal val type: KtType) : KSType {
     }
 
     override val annotations: Sequence<KSAnnotation>
-        get() = type.annotations() +
+        get() = type.annotations.asSequence().map { KSAnnotationImpl.getCached(it) } +
             if (type is KtFunctionalType && type.receiverType != null) {
                 sequenceOf(KSAnnotationImpl.getCached(ExtensionFunctionTypeAnnotation))
             } else {

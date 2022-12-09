@@ -25,6 +25,7 @@ import com.google.devtools.ksp.symbol.KSTypeArgument
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitor
 import com.google.devtools.ksp.symbol.Location
+import com.google.devtools.ksp.symbol.NonExistLocation
 import com.google.devtools.ksp.symbol.Origin
 import com.google.devtools.ksp.symbol.Variance
 import org.jetbrains.kotlin.analysis.api.KtStarTypeProjection
@@ -59,13 +60,13 @@ class KSTypeArgumentImpl private constructor(
     }
 
     override val annotations: Sequence<KSAnnotation> by lazy {
-        ktTypeProjection.type?.annotations() ?: emptySequence()
+        ktTypeProjection.type?.let { annotations(it) } ?: emptySequence()
     }
 
     override val origin: Origin = parent?.origin ?: Origin.SYNTHETIC
 
     override val location: Location
-        get() = TODO("Not yet implemented")
+        get() = parent?.location ?: NonExistLocation
 
     override fun <D, R> accept(visitor: KSVisitor<D, R>, data: D): R {
         return visitor.visitTypeArgument(this, data)

@@ -17,6 +17,7 @@
 
 package com.google.devtools.ksp.impl.symbol.kotlin
 
+import com.google.devtools.ksp.IdKeyPair
 import com.google.devtools.ksp.KSObjectCache
 import com.google.devtools.ksp.processing.impl.KSNameImpl
 import com.google.devtools.ksp.symbol.*
@@ -30,10 +31,13 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget.*
 import org.jetbrains.kotlin.psi.KtParameter
 
-class KSAnnotationImpl private constructor(private val annotationApplication: KtAnnotationApplication) : KSAnnotation {
-    companion object : KSObjectCache<KtAnnotationApplication, KSAnnotationImpl>() {
-        fun getCached(annotationApplication: KtAnnotationApplication) =
-            cache.getOrPut(annotationApplication) { KSAnnotationImpl(annotationApplication) }
+class KSAnnotationImpl private constructor(
+    private val annotationApplication: KtAnnotationApplication,
+    override val parent: KSNode?
+) : KSAnnotation {
+    companion object : KSObjectCache<IdKeyPair<KtAnnotationApplication, KSNode?>, KSAnnotationImpl>() {
+        fun getCached(annotationApplication: KtAnnotationApplication, parent: KSNode? = null) =
+            cache.getOrPut(IdKeyPair(annotationApplication, parent)) { KSAnnotationImpl(annotationApplication, parent) }
     }
 
     override val annotationType: KSTypeReference by lazy {
@@ -92,9 +96,6 @@ class KSAnnotationImpl private constructor(private val annotationApplication: Kt
     override val location: Location by lazy {
         annotationApplication.psi?.toLocation() ?: NonExistLocation
     }
-
-    override val parent: KSNode?
-        get() = TODO("Not yet implemented")
 
     override fun <D, R> accept(visitor: KSVisitor<D, R>, data: D): R {
         return visitor.visitAnnotation(this, data)
