@@ -63,16 +63,16 @@ class KSValueParameterImpl private constructor(
     }
 
     override val isNoInline: Boolean
-        get() = TODO("Not yet implemented")
+        get() = ktValueParameterSymbol.isNoinline
 
     override val isCrossInline: Boolean
-        get() = TODO("Not yet implemented")
+        get() = ktValueParameterSymbol.isCrossinline
 
     override val isVal: Boolean
-        get() = TODO("Not yet implemented")
+        get() = ktValueParameterSymbol.generatedPrimaryConstructorProperty?.isVal == true
 
     override val isVar: Boolean
-        get() = TODO("Not yet implemented")
+        get() = ktValueParameterSymbol.generatedPrimaryConstructorProperty?.isVal == false
 
     override val hasDefault: Boolean by lazy {
         ktValueParameterSymbol.hasDefaultValue

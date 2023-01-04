@@ -111,6 +111,11 @@ tasks.test {
     }
 }
 
+tasks.register<Copy>("copyDeps") {
+    from(configurations.compileClasspath)
+    into("lib")
+}
+
 repositories {
     flatDir {
         dirs("${project.rootDir}/third_party/prebuilt/repo/")

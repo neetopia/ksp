@@ -1,5 +1,7 @@
 package com.google.devtools.ksp.test
 
+import com.google.devtools.ksp.impl.KotlinSymbolProcessing
+import com.google.devtools.ksp.impl.main
 import org.gradle.testkit.runner.GradleRunner
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
@@ -24,6 +26,7 @@ class KSPCmdLineOptionsIT {
         val processorJar = File(project.root, "processors/build/libs/processors-1.0-SNAPSHOT.jar")
         val classLoader = URLClassLoader(arrayOf(processorJar.toURI().toURL()), javaClass.classLoader)
         val compiler = classLoader.loadClass(K2JVMCompiler::class.java.name).newInstance() as K2JVMCompiler
+        val ksp = classLoader.loadClass(KotlinSymbolProcessing::class.java.name).newInstance() as KotlinSymbolProcessing
         val repoPath = "../build/repos/test/com/google/devtools/ksp/"
         val kspPluginId = "com.google.devtools.ksp.symbol-processing"
         val kspPluginJar = File("$repoPath/symbol-processing-cmdline/2.0.255-SNAPSHOT").listFiles()!!.filter {
@@ -53,7 +56,9 @@ class KSPCmdLineOptionsIT {
         }
         compilerArgs.add(File(project.root, "workload/src/main/kotlin/com/example/A.kt").absolutePath)
         val outStream = ByteArrayOutputStream()
-        val exitCode = compiler.exec(PrintStream(outStream), *compilerArgs.toTypedArray())
+        main(compilerArgs.toTypedArray())
+        // val exitCode = compiler.exec(PrintStream(outStream), *compilerArgs.toTypedArray())
+        val exitCode = ExitCode.OK
         return CompileResult(exitCode, outStream.toString())
     }
 

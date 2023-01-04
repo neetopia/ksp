@@ -30,7 +30,6 @@ import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.analysis.api.standalone.StandaloneAnalysisAPISession
 import org.jetbrains.kotlin.analysis.api.standalone.buildStandaloneAnalysisAPISession
 import org.jetbrains.kotlin.analysis.project.structure.getKtModule
 import org.jetbrains.kotlin.cli.common.config.kotlinSourceRoots
@@ -43,15 +42,17 @@ class KotlinSymbolProcessing(
     val compilerConfiguration: CompilerConfiguration,
     val options: KspOptions,
     val logger: KSPLogger,
-    val analysisAPISession: StandaloneAnalysisAPISession,
     val providers: List<SymbolProcessorProvider>
 ) {
-    val project = analysisAPISession.project as MockProject
-    val kspCoreEnvironment = KSPCoreEnvironment(project)
+    var analysisAPISession = buildStandaloneAnalysisAPISession {
+        buildKtModuleProviderByCompilerConfiguration(compilerConfiguration)
+    }
+    var project = analysisAPISession.project as MockProject
+    // val kspCoreEnvironment = KSPCoreEnvironment(project)
 
     var finished = false
     val deferredSymbols = mutableMapOf<SymbolProcessor, List<KSAnnotated>>()
-    val ktFiles = createSourceFilesFromSourceRoots(
+    var ktFiles = createSourceFilesFromSourceRoots(
         compilerConfiguration, project, compilerConfiguration.kotlinSourceRoots
     ).toSet().toList()
     val javaFiles = compilerConfiguration.javaSourceRoots
@@ -98,36 +99,52 @@ class KotlinSymbolProcessing(
         val psiManager = PsiManager.getInstance(project)
         val localFileSystem = VirtualFileManager.getInstance().getFileSystem(StandardFileSystems.FILE_PROTOCOL)
         val javaSourceRoots = options.javaSourceRoots
-        val javaFiles = javaSourceRoots.sortedBy { Files.isSymbolicLink(it.toPath()) } // Get non-symbolic paths first
-            .flatMap { root -> root.walk().filter { it.isFile && it.extension == "java" }.toList() }
-            .sortedBy { java.nio.file.Files.isSymbolicLink(it.toPath()) } // This time is for .java files
-            .distinctBy { it.canonicalPath }
-            .mapNotNull { localFileSystem.findFileByPath(it.path)?.let { psiManager.findFile(it) } as? PsiJavaFile }
-        val resolver = ResolverAAImpl(
-            ktFiles.map {
-                analyze { it.getFileSymbol() }
-            },
-            javaFiles
-        )
-        ResolverAAImpl.instance = resolver
-        processors.forEach { it.process(resolver) }
+        do {
+            ktFiles = createSourceFilesFromSourceRoots(
+                compilerConfiguration, project, compilerConfiguration.kotlinSourceRoots
+            ).toSet().toList()
+            // Re-assign KtModule from current round.
+            // KtModule is what is being used by AA to get analysis session, therefore this ensures
+            // analysis result is current to the round.
+            ResolverAAImpl.ktModule = ktFiles.first().getKtModule()
+
+            val javaFiles =
+                (javaSourceRoots).sortedBy { Files.isSymbolicLink(it.toPath()) } // Get non-symbolic paths first
+                    .flatMap { root -> root.walk().filter { it.isFile && it.extension == "java" }.toList() }
+                    .sortedBy { Files.isSymbolicLink(it.toPath()) } // This time is for .java files
+                    .distinctBy { it.canonicalPath }
+                    .mapNotNull {
+                        localFileSystem.findFileByPath(it.path)?.let { psiManager.findFile(it) } as? PsiJavaFile
+                    }
+            val resolver = ResolverAAImpl(
+                ktFiles.map {
+                    analyze { it.getFileSymbol() }
+                },
+                javaFiles
+            )
+            ResolverAAImpl.instance = resolver
+            processors.forEach { it.process(resolver) }
+            val isFinished = codeGenerator.generatedFile.isEmpty()
+            codeGenerator.closeFiles()
+            // rebuild analysis session after a round.
+            analysisAPISession = buildStandaloneAnalysisAPISession {
+                buildKtModuleProviderByCompilerConfiguration(compilerConfiguration)
+            }
+            project = analysisAPISession.project as MockProject
+        } while(!isFinished)
     }
 }
 
 fun main(args: Array<String>) {
     val compilerConfiguration = CompilerConfiguration()
     val commandLineProcessor = KSPCommandLineProcessor(compilerConfiguration)
+    commandLineProcessor.processArgs(args)
     val logger = CommandLineKSPLogger()
-
-    val analysisSession = buildStandaloneAnalysisAPISession {
-        buildKtModuleProviderByCompilerConfiguration(compilerConfiguration)
-    }
 
     val kotlinSymbolProcessing = KotlinSymbolProcessing(
         commandLineProcessor.compilerConfiguration,
         commandLineProcessor.kspOptions,
         logger,
-        analysisSession,
         commandLineProcessor.providers
     )
     kotlinSymbolProcessing.prepare()

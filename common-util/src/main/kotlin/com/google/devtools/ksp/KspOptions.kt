@@ -60,14 +60,15 @@ class KspOptions(
     val mapAnnotationArgumentsInJava: Boolean,
 ) {
     class Builder {
-        var projectBaseDir: File? = null
+        private val tmpDir = File("/tmp/tmpDir")
+        var projectBaseDir: File? = tmpDir
         val compileClasspath: MutableList<File> = mutableListOf()
         val javaSourceRoots: MutableList<File> = mutableListOf()
 
-        var classOutputDir: File? = null
-        var javaOutputDir: File? = null
-        var kotlinOutputDir: File? = null
-        var resourceOutputDir: File? = null
+        var classOutputDir: File? = tmpDir
+        var javaOutputDir: File? = tmpDir
+        var kotlinOutputDir: File? = tmpDir
+        var resourceOutputDir: File? = tmpDir
 
         val processingClasspath: MutableList<File> = mutableListOf()
         val processors: MutableList<String> = mutableListOf()
@@ -77,8 +78,8 @@ class KspOptions(
         val knownModified: MutableList<File> = mutableListOf()
         val knownRemoved: MutableList<File> = mutableListOf()
 
-        var cachesDir: File? = null
-        var kspOutputDir: File? = null
+        var cachesDir: File? = tmpDir
+        var kspOutputDir: File? = tmpDir
         var incremental: Boolean = false
         var incrementalLog: Boolean = false
         var allWarningsAsErrors: Boolean = false

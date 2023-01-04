@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.config.addJavaSourceRoots
+import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.util.ServiceLoaderLite
 import java.io.File
@@ -39,10 +41,16 @@ class KSPCommandLineProcessor(val compilerConfiguration: CompilerConfiguration) 
     fun processArgs(args: Array<String>) {
         // TODO: support KSP options
         val sources = args.toList()
+        compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, "main")
         compilerConfiguration.addKotlinSourceRoots(sources)
         compilerConfiguration.addJavaSourceRoots(sources.map { File(it) })
+        compilerConfiguration.addKotlinSourceRoots(listOf(kspOptions.kspOutputDir.absolutePath))
+        compilerConfiguration.addJavaSourceRoots(listOf(kspOptions.kspOutputDir))
+        compilerConfiguration.addJvmClasspathRoot(File("/Users/jiaxiang/.m2/repository/com/google/devtools/ksp/symbol-processing-analysis-api/2.0.255-SNAPSHOT/test-processor-1.0-SNAPSHOT.jar"))
+        compilerConfiguration.addJvmClasspathRoot(File("/Users/jiaxiang/.m2/repository/com/google/devtools/ksp/symbol-processing-analysis-api/2.0.255-SNAPSHOT/kotlin-stdlib.jar"))
+        compilerConfiguration.addJvmClasspathRoot(File("/Users/jiaxiang/.m2/repository/com/google/devtools/ksp/symbol-processing-analysis-api/2.0.255-SNAPSHOT/kotlin-script-runtime.jar"))
         compilerConfiguration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
-        val processingClasspath = kspOptionsBuilder.processingClasspath
+        val processingClasspath = kspOptionsBuilder.processingClasspath + File("/Users/jiaxiang/.m2/repository/com/google/devtools/ksp/symbol-processing-analysis-api/2.0.255-SNAPSHOT/test-processor-1.0-SNAPSHOT.jar")
         val classLoader = URLClassLoader(
             processingClasspath.map { it.toURI().toURL() }.toTypedArray(),
             javaClass.classLoader

@@ -10,6 +10,7 @@ dependencies {
     testImplementation("junit:junit:$junitVersion")
     testImplementation(gradleTestKit())
     testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinBaseVersion")
+    testImplementation(project(":kotlin-analysis-api"))
 }
 
 tasks.named<Test>("test") {
@@ -21,4 +22,5 @@ tasks.named<Test>("test") {
     dependsOn(":gradle-plugin:publishAllPublicationsToTestRepository")
     dependsOn(":symbol-processing:publishAllPublicationsToTestRepository")
     dependsOn(":symbol-processing-cmdline:publishAllPublicationsToTestRepository")
+    dependsOn(":symbol-processing-analysis-api:publishAllPublicationsToTestRepository")
 }
