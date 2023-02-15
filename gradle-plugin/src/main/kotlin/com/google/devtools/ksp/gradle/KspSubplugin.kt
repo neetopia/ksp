@@ -22,6 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection

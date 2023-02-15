@@ -37,3 +37,19 @@ ksp {
     arg("option1", "value1")
     arg("option2", "value2")
 }
+
+dependencies {
+    add("kspCommonMainMetadata", project(":test-processor"))
+    add("kspJvm", project(":test-processor"))
+    add("kspJvmTest", project(":test-processor"))
+    add("kspJs", project(":test-processor"))
+    add("kspJsTest", project(":test-processor"))
+    add("kspLinuxX64", project(":test-processor"))
+    add("kspLinuxX64Test", project(":test-processor"))
+    add("kspMingwX64", project(":test-processor"))
+    add("kspMingwX64Test", project(":test-processor"))
+}
+
+afterEvaluate {
+    configurations["jvmRuntimeClasspath"].files
+}
