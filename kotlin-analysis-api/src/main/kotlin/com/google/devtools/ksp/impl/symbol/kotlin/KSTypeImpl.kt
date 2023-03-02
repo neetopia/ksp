@@ -19,6 +19,7 @@ package com.google.devtools.ksp.impl.symbol.kotlin
 
 import com.google.devtools.ksp.IdKeyPair
 import com.google.devtools.ksp.KSObjectCache
+import com.google.devtools.ksp.impl.ResolverAAImpl
 import com.google.devtools.ksp.impl.symbol.kotlin.synthetic.getExtensionFunctionTypeAnnotation
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
@@ -62,10 +63,27 @@ class KSTypeImpl private constructor(internal val type: KtType) : KSType {
     }
 
     override val nullability: Nullability by lazy {
-        if (type.nullability == KtTypeNullability.NON_NULLABLE) {
-            Nullability.NOT_NULL
-        } else {
-            Nullability.NULLABLE
+        fun isNullable(type: KtType): Boolean {
+            if (type.nullability == KtTypeNullability.NULLABLE) {
+                return true
+            }
+            if (type is KtFlexibleType && isNullable(type.upperBound)) {
+                return true
+            }
+            if (type is KtDefinitelyNotNullType) {
+                return false
+            }
+            if (type is KtTypeParameterType) {
+                return KSTypeParameterImpl.getCached(type.symbol).bounds.map { it.resolve() }
+                    .contains(ResolverAAImpl.instance.builtIns.anyType.makeNullable())
+            }
+            return false
+
+        }
+        when {
+            type is KtFlexibleType && type.lowerBound.nullability != type.upperBound.nullability -> Nullability.PLATFORM
+            isNullable(type) -> Nullability.NULLABLE
+            else -> Nullability.NOT_NULL
         }
     }
 
