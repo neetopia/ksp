@@ -52,6 +52,7 @@ class KSTypeReferenceImpl private constructor(
                 )
                 is KtErrorType -> null
                 is KtTypeParameterType -> null
+                is KtDefinitelyNotNullType -> KSDefNonNullReferenceImpl.getCached(ktType, this@KSTypeReferenceImpl)
                 else -> throw IllegalStateException("Unexpected type element ${ktType.javaClass}, $ExceptionMessage")
             }
         }
