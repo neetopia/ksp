@@ -9,7 +9,9 @@ plugins {
 dependencies {
     testImplementation("junit:junit:$junitVersion")
     testImplementation(gradleTestKit())
-    testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinBaseVersion")
+    testImplementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinBaseVersion") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-build-common")
+    }
 }
 
 tasks.named<Test>("test") {
