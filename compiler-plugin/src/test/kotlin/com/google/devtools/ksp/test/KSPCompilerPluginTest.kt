@@ -483,6 +483,12 @@ class KSPCompilerPluginTest : AbstractKSPCompilerPluginTest() {
         runTest("../test-utils/testData/api/superTypes.kt")
     }
 
+    @TestMetadata("suspendTypeAnnotation.kt")
+    @Test
+    fun testSuspendTypeAnnotation() {
+        runTest("../test-utils/testData/api/suspendTypeAnnotation.kt")
+    }
+
     @TestMetadata("throwList.kt")
     @Test
     fun testThrowList() {
