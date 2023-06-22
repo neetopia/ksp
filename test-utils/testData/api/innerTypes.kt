@@ -28,9 +28,10 @@
 // C4<Double>: [C1.C4<INVARIANT Double>]
 // C5<*, *>: [C1.C4.C5<STAR Any>, C1.C4<STAR Any>]
 // C5<Float, Double>: [C1.C4.C5<INVARIANT Float>, C1.C4<INVARIANT Double>]
+// [C1.C6<>, C1<INVARIANT Int>]
 // END
 
-@file:Suppress("Byte", "Int", "Short", "Double", "Float", "Suppress", "Any")
+@file:Suppress("Byte", "Int", "Short", "Double", "Float", "Suppress", "Any", "C", "C6")
 
 class C1<T1> {
     inner class C2<T2> {
@@ -42,6 +43,8 @@ class C1<T1> {
     class C4<T4> {
         inner class C5<T5>
     }
+
+    inner class C6 {}
 }
 
 val c1 = C1<Int>()
@@ -49,3 +52,5 @@ val c2 = c1.C2<Short>()
 val c3 = c2.C3<Byte>()
 val c4 = C1.C4<Double>()
 val c5 = c4.C5<Float>()
+
+class C(param: C1<Int>.C6)

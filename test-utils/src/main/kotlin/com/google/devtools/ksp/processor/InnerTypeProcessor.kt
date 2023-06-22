@@ -17,6 +17,7 @@
 
 package com.google.devtools.ksp.processor
 
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.innerArguments
 import com.google.devtools.ksp.outerType
 import com.google.devtools.ksp.processing.Resolver
@@ -62,6 +63,8 @@ open class InnerTypeProcessor : AbstractTestProcessor() {
         for (i in sortedTypes) {
             results.add("$i: ${i.breakDown()}")
         }
+        val c = resolver.getClassDeclarationByName("C")
+        c?.primaryConstructor!!.parameters.forEach { results.add("${it.type.resolve().breakDown()}") }
         return emptyList()
     }
 
