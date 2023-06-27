@@ -300,4 +300,14 @@ interface Resolver {
      */
     @KspExperimental
     fun isJavaRawType(type: KSType): Boolean
+
+    /**
+     * Get annotations from a package for a given package name.
+     * package annotations are annotations that applied in package-info.java file for a given java package.
+     *
+     * @param packageName package name.
+     * @return A sequence of KSAnnotation applied on the package.
+     */
+    @KspExperimental
+    fun getAnnotationsFromPackage(packageName: String): Sequence<KSAnnotation>
 }

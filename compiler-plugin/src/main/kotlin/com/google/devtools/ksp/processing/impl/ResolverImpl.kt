@@ -1411,6 +1411,16 @@ class ResolverImpl(
         return type is KSTypeImpl && type.kotlinType.unwrap() is RawType
     }
 
+    @KspExperimental
+    override fun getAnnotationsFromPackage(packageName: String): Sequence<KSAnnotation> {
+        return allKSFiles
+            .singleOrNull { it.fileName == "package-info.java" && it.packageName.asString() == packageName }?.let {
+                (it as KSFileJavaImpl).psi.packageStatement?.annotationList?.annotations?.map {
+                    KSAnnotationJavaImpl.getCached(it)
+                }?.asSequence()
+            } ?: emptySequence()
+    }
+
     private val psiJavaFiles = allKSFiles.filterIsInstance<KSFileJavaImpl>().map {
         Pair(it.psi.virtualFile.path, it.psi)
     }.toMap()

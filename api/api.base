@@ -150,6 +150,7 @@ package com.google.devtools.ksp.processing {
     method @NonNull public com.google.devtools.ksp.symbol.KSTypeReference createKSTypeReferenceFromKSType(@NonNull com.google.devtools.ksp.symbol.KSType type);
     method @NonNull @com.google.devtools.ksp.KspExperimental public java.util.Set<com.google.devtools.ksp.symbol.Modifier> effectiveJavaModifiers(@NonNull com.google.devtools.ksp.symbol.KSDeclaration declaration);
     method @NonNull public kotlin.sequences.Sequence<com.google.devtools.ksp.symbol.KSFile> getAllFiles();
+    method @NonNull @com.google.devtools.ksp.KspExperimental public kotlin.sequences.Sequence<com.google.devtools.ksp.symbol.KSAnnotation> getAnnotationsFromPackage(@NonNull String packageName);
     method @NonNull public com.google.devtools.ksp.processing.KSBuiltIns getBuiltIns();
     method @Nullable public com.google.devtools.ksp.symbol.KSClassDeclaration getClassDeclarationByName(@NonNull com.google.devtools.ksp.symbol.KSName name);
     method @NonNull @com.google.devtools.ksp.KspExperimental public kotlin.sequences.Sequence<com.google.devtools.ksp.symbol.KSDeclaration> getDeclarationsFromPackage(@NonNull String packageName);
