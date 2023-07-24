@@ -20,6 +20,7 @@ package com.google.devtools.ksp.impl.symbol.kotlin
 import com.google.devtools.ksp.KSObjectCache
 import com.google.devtools.ksp.processing.impl.KSNameImpl
 import com.google.devtools.ksp.symbol.*
+import com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.analysis.api.KtStarTypeProjection
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.*
@@ -32,6 +33,16 @@ class KSClassDeclarationImpl private constructor(internal val ktClassOrObjectSym
     companion object : KSObjectCache<KtClassOrObjectSymbol, KSClassDeclarationImpl>() {
         fun getCached(ktClassOrObjectSymbol: KtClassOrObjectSymbol) =
             cache.getOrPut(ktClassOrObjectSymbol) { KSClassDeclarationImpl(ktClassOrObjectSymbol) }
+    }
+
+    override val annotations: Sequence<KSAnnotation> by lazy {
+        if (origin == Origin.JAVA) {
+            (ktClassOrObjectSymbol.psi as PsiClass).annotations.map {
+                KSAnnotationJavaImpl.getCached(it, this)
+            }.asSequence()
+        } else {
+            super.annotations
+        }
     }
 
     override val qualifiedName: KSName? by lazy {

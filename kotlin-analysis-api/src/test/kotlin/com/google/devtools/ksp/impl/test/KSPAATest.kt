@@ -36,7 +36,6 @@ class KSPAATest : AbstractKSPAATest() {
         runTest("../test-utils/testData/api/annotatedUtil.kt")
     }
 
-    @Disabled
     @TestMetadata("javaAnnotatedUtil.kt")
     @Test
     fun testJavaAnnotatedUtil() {

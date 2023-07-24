@@ -91,7 +91,7 @@ class KSAnnotationImpl private constructor(
         }
     }
 
-    override val origin: Origin = Origin.KOTLIN
+    override val origin: Origin = parent?.origin ?: Origin.SYNTHETIC
 
     override val location: Location by lazy {
         annotationApplication.psi?.toLocation() ?: NonExistLocation
