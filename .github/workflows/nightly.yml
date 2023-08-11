@@ -1,7 +1,5 @@
 on:
-  # runs on 4:30 AM PST or 5:30 AM PDT
-  schedule:
-    - cron:  '30 12 * * *'
+  push:
 jobs:
   build-and-test:
     strategy:
