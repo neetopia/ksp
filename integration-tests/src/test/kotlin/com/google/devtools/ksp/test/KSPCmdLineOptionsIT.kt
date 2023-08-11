@@ -37,6 +37,7 @@ class KSPCmdLineOptionsIT {
             "-Xplugin=${kspPluginJar.absolutePath}",
             "-Xplugin=${kspApiJar.absolutePath}",
             "-P", "plugin:$kspPluginId:apclasspath=${processorJar.absolutePath}",
+            "-P", "plugin:$kspPluginId:buildDir=${project.root}/build",
             "-P", "plugin:$kspPluginId:projectBaseDir=${project.root}/build",
             "-P", "plugin:$kspPluginId:classOutputDir=${project.root}/build",
             "-P", "plugin:$kspPluginId:javaOutputDir=${project.root}/build/out",
