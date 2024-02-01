@@ -30,6 +30,9 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.impl.KSNameImpl
 import com.google.devtools.ksp.processing.impl.KSTypeReferenceSyntheticImpl
+import com.google.devtools.ksp.processing.impl.RefPosition
+import com.google.devtools.ksp.processing.impl.findOuterMostRef
+import com.google.devtools.ksp.processing.impl.findRefPosition
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.CollectAnnotatedSymbolsVisitor
 import com.intellij.openapi.project.Project
@@ -46,6 +49,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtTypeAliasSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.analysis.api.types.KtTypeMappingMode
 import org.jetbrains.kotlin.analysis.decompiler.stub.file.ClsKotlinBinaryClassCache
 import org.jetbrains.kotlin.analysis.project.structure.KtModule
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
@@ -349,7 +353,25 @@ class ResolverAAImpl(
     }
 
     override fun getJavaWildcard(reference: KSTypeReference): KSTypeReference {
-        TODO("Not yet implemented")
+        val (ref, indexes) = reference.findOuterMostRef()
+
+        val type = ref.resolve()
+        if (type.isError)
+            return reference
+        val position = findRefPosition(ref)
+        val ktType = (type as KSTypeImpl).type
+        val useSitePos = (reference.parent as? AbstractKSDeclarationImpl)?.ktDeclarationSymbol?.psi
+        val mode = when (position) {
+            RefPosition.RETURN_TYPE -> KtTypeMappingMode.RETURN_TYPE
+            RefPosition.SUPER_TYPE -> KtTypeMappingMode.SUPER_TYPE
+            RefPosition.PARAMETER_TYPE -> KtTypeMappingMode.VALUE_PARAMETER
+        }
+        return analyze {
+            ktType.asPsiType(useSitePos!!, true, mode)?.asKtType(useSitePos!!)?.let {
+                KSTypeReferenceSyntheticImpl.getCached(KSTypeImpl.getCached(it), null)
+            }
+        } ?: reference
+
     }
 
     override fun getJvmCheckedException(accessor: KSPropertyAccessor): Sequence<KSType> {

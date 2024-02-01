@@ -221,7 +221,6 @@ class KSPAATest : AbstractKSPAATest() {
         runTest("../test-utils/testData/api/docString.kt")
     }
 
-    @Disabled
     @TestMetadata("equivalentJavaWildcards.kt")
     @Test
     fun testEquivalentJavaWildcards() {
