@@ -1,5 +1,6 @@
 package com.google.devtools.ksp.processing.impl
 
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSCallableReference
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
@@ -64,4 +65,9 @@ fun KSTypeReference.findOuterMostRef(): Pair<KSTypeReference, List<Int>> {
     return Pair(candidate, indexes)
 }
 
-
+fun KSTypeReference.isReturnTypeOfAnnotationMethod(): Boolean {
+    var candidate = this.parent
+    while (candidate !is KSClassDeclaration && candidate != null)
+        candidate = candidate.parent
+    return (candidate as? KSClassDeclaration)?.classKind == ClassKind.ANNOTATION_CLASS
+}

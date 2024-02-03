@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget.*
 
 // TODO: implement a psi based version of annotation application.
 class KSAnnotationImpl private constructor(
-    private val annotationApplication: KtAnnotationApplicationWithArgumentsInfo,
+    internal val annotationApplication: KtAnnotationApplicationWithArgumentsInfo,
     override val parent: KSNode?
 ) : KSAnnotation {
     companion object : KSObjectCache<IdKeyPair<KtAnnotationApplicationWithArgumentsInfo, KSNode?>, KSAnnotationImpl>() {
@@ -44,7 +44,7 @@ class KSAnnotationImpl private constructor(
 
     override val annotationType: KSTypeReference by lazy {
         analyze {
-            KSTypeReferenceResolvedImpl.getCached(buildClassType(annotationApplication.classId!!))
+            KSTypeReferenceResolvedImpl.getCached(buildClassType(annotationApplication.classId!!), this@KSAnnotationImpl)
         }
     }
 

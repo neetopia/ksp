@@ -1220,16 +1220,6 @@ class ResolverImpl(
         return modifiers
     }
 
-
-
-
-    private fun KSTypeReference.isReturnTypeOfAnnotationMethod(): Boolean {
-        var candidate = this.parent
-        while (candidate !is KSClassDeclaration && candidate != null)
-            candidate = candidate.parent
-        return (candidate as? KSClassDeclaration)?.classKind == ClassKind.ANNOTATION_CLASS
-    }
-
     // Convert type arguments for Java wildcard, recursively.
     private fun KotlinType.toWildcard(mode: TypeMappingMode): KotlinType? {
         val parameters = constructor.parameters

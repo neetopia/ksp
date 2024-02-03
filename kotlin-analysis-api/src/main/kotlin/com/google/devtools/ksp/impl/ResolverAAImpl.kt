@@ -33,6 +33,7 @@ import com.google.devtools.ksp.processing.impl.KSTypeReferenceSyntheticImpl
 import com.google.devtools.ksp.processing.impl.RefPosition
 import com.google.devtools.ksp.processing.impl.findOuterMostRef
 import com.google.devtools.ksp.processing.impl.findRefPosition
+import com.google.devtools.ksp.processing.impl.isReturnTypeOfAnnotationMethod
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.CollectAnnotatedSymbolsVisitor
 import com.intellij.openapi.project.Project
@@ -360,15 +361,23 @@ class ResolverAAImpl(
             return reference
         val position = findRefPosition(ref)
         val ktType = (type as KSTypeImpl).type
-        val useSitePos = (reference.parent as? AbstractKSDeclarationImpl)?.ktDeclarationSymbol?.psi
+        val useSitePos = when (val parent = reference.parent) {
+            is AbstractKSDeclarationImpl -> parent.ktDeclarationSymbol.psi
+            is KSTypeArgumentImpl -> parent.ktTypeArgument.psiOrParent
+            is KSAnnotationImpl -> parent.annotationApplication.psi
+            is KSPropertyAccessorImpl -> parent.ktPropertyAccessorSymbol.psi ?: (parent.receiver as KSPropertyDeclarationImpl).ktPropertySymbol.psi
+            is KSValueParameterImpl -> parent.ktValueParameterSymbol.psi
+            else -> null
+        } ?: return reference
+        // val useSitePos = (reference.findParentOfType<AbstractKSDeclarationImpl>() as? AbstractKSDeclarationImpl)?.ktDeclarationSymbol?.psi
         val mode = when (position) {
             RefPosition.RETURN_TYPE -> KtTypeMappingMode.RETURN_TYPE
             RefPosition.SUPER_TYPE -> KtTypeMappingMode.SUPER_TYPE
             RefPosition.PARAMETER_TYPE -> KtTypeMappingMode.VALUE_PARAMETER
         }
         return analyze {
-            ktType.asPsiType(useSitePos!!, true, mode)?.asKtType(useSitePos!!)?.let {
-                KSTypeReferenceSyntheticImpl.getCached(KSTypeImpl.getCached(it), null)
+            ktType.asPsiType(useSitePos, true, mode, reference.isReturnTypeOfAnnotationMethod())?.let {
+                KSTypeReferenceSyntheticImpl.getCached(KSTypeImpl.getCached(it.asKtType(useSitePos)!!.upperBoundIfFlexible()), null)
             }
         } ?: reference
 
