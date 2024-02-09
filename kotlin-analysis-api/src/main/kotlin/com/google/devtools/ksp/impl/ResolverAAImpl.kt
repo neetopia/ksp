@@ -39,6 +39,10 @@ import com.google.devtools.ksp.visitor.CollectAnnotatedSymbolsVisitor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.file.impl.JavaFileManager
+import org.jetbrains.kotlin.analysis.api.KtStarTypeProjection
+import org.jetbrains.kotlin.analysis.api.KtTypeArgumentWithVariance
+import org.jetbrains.kotlin.analysis.api.KtTypeProjection
+import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.components.buildSubstitutor
 import org.jetbrains.kotlin.analysis.api.fir.types.KtFirType
 import org.jetbrains.kotlin.analysis.api.symbols.KtEnumEntrySymbol
@@ -49,14 +53,18 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtPropertyAccessorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtTypeAliasSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.analysis.api.types.KtTypeMappingMode
 import org.jetbrains.kotlin.analysis.decompiler.stub.file.ClsKotlinBinaryClassCache
 import org.jetbrains.kotlin.analysis.project.structure.KtModule
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCliJavaFileManagerImpl
+import org.jetbrains.kotlin.codegen.state.JVM_SUPPRESS_WILDCARDS_ANNOTATION_FQ_NAME
+import org.jetbrains.kotlin.codegen.state.JVM_WILDCARD_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.fir.types.isRaw
 import org.jetbrains.kotlin.load.java.structure.impl.JavaClassImpl
+import org.jetbrains.kotlin.load.kotlin.TypeMappingMode
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
@@ -353,6 +361,119 @@ class ResolverAAImpl(
         }
     }
 
+    private fun getVarianceForWildcard(parameter: KtTypeParameterSymbol, projction: KtTypeProjection, mode: TypeMappingMode): org.jetbrains.kotlin.types.Variance {
+        val projectionKind = if (projction is KtTypeArgumentWithVariance) {
+            when (projction.variance) {
+                org.jetbrains.kotlin.types.Variance.IN_VARIANCE -> org.jetbrains.kotlin.types.Variance.IN_VARIANCE
+                org.jetbrains.kotlin.types.Variance.INVARIANT -> org.jetbrains.kotlin.types.Variance.INVARIANT
+                org.jetbrains.kotlin.types.Variance.OUT_VARIANCE -> org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
+                else -> org.jetbrains.kotlin.types.Variance.INVARIANT
+            }
+        } else {
+            org.jetbrains.kotlin.types.Variance.INVARIANT
+        }
+        val parameterVariance = when(parameter.variance) {
+            org.jetbrains.kotlin.types.Variance.IN_VARIANCE -> org.jetbrains.kotlin.types.Variance.IN_VARIANCE
+            org.jetbrains.kotlin.types.Variance.OUT_VARIANCE -> org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
+            org.jetbrains.kotlin.types.Variance.INVARIANT -> org.jetbrains.kotlin.types.Variance.INVARIANT
+        }
+        if (parameterVariance == org.jetbrains.kotlin.types.Variance.INVARIANT) {
+            return projectionKind
+        }
+        if (mode.skipDeclarationSiteWildcards) {
+            return org.jetbrains.kotlin.types.Variance.INVARIANT
+        }
+        if (projectionKind == org.jetbrains.kotlin.types.Variance.INVARIANT || projectionKind == parameterVariance) {
+            if (mode.skipDeclarationSiteWildcardsIfPossible && projction !is KtStarTypeProjection) {
+            }
+            return parameterVariance
+        }
+        return org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
+    }
+
+    private fun KtType.toWildcard(mode: TypeMappingMode, isReturnTypeOfAnnotationMethod: Boolean): KtType? {
+        val parameters = this.classifierSymbol()?.typeParameters ?: emptyList()
+        val args = this.typeArguments()
+        return analyze {
+            buildClassType(this@toWildcard.expandedClassSymbol!!) {
+                parameters.zip(args).map { (param, arg) ->
+                    val argMode = mode.updateFromAnnotations(arg.type)
+                    val variance = getVarianceForWildcard(param, arg, argMode)
+                    arg.type?.let {
+                        argument(arg.type!!.toWildcard(mode, isReturnTypeOfAnnotationMethod)!!, variance)
+                    }
+                    // substitution(param, arg.type!!.toWildcard(KtTypeMappingMode.DEFAULT, useSitePosition)!! )
+                }
+            }
+                // .asPsiType(useSitePosition, true, mode, false)?.asKtType(useSitePosition)
+        }
+    }
+
+    private fun TypeMappingMode.suppressJvmWildcards(
+        suppress: Boolean
+    ): TypeMappingMode {
+        return TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+            skipDeclarationSiteWildcards = suppress,
+            isForAnnotationParameter = isForAnnotationParameter,
+            needInlineClassWrapping = needInlineClassWrapping,
+            mapTypeAliases = mapTypeAliases
+        )
+    }
+    private fun TypeMappingMode.updateFromParents(
+        ref: KSTypeReference
+    ): TypeMappingMode {
+        return ref.findJvmSuppressWildcards()?.let {
+            this.suppressJvmWildcards(it)
+        } ?: this
+    }
+
+    private fun KSTypeReference.findJvmSuppressWildcards(): Boolean? {
+        var candidate: KSNode? = this
+        while (candidate != null) {
+            if ((candidate is KSTypeReference || candidate is KSDeclaration)) {
+                if(
+                    (candidate as KSAnnotated).annotations.any {
+                        it.annotationType.resolve().declaration.qualifiedName?.asString()?.equals(
+                            JVM_SUPPRESS_WILDCARDS_ANNOTATION_FQ_NAME.asString()
+                        ) == true && it.arguments.any { it.name?.asString() == "suppress" && (it.value as? Boolean) == true}
+                    }
+                    )
+                return true
+            }
+            candidate = candidate.parent
+        }
+        return null
+    }
+
+    private fun TypeMappingMode.updateFromAnnotations(
+        type: KtType?
+    ): TypeMappingMode {
+        if (type == null) {
+            return this
+        }
+        return if (type.annotations().any { it.annotationType.resolve().declaration.qualifiedName?.asString()?.equals(
+            JVM_SUPPRESS_WILDCARDS_ANNOTATION_FQ_NAME.asString()
+        ) == true && it.arguments.any { it.name?.asString() == "suppress" && (it.value as? Boolean) == true} }) {
+            TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+                true,
+                isForAnnotationParameter = isForAnnotationParameter,
+                needInlineClassWrapping = needInlineClassWrapping,
+                mapTypeAliases = mapTypeAliases
+            )
+        } else if (type.annotations().any { it.annotationType.resolve().declaration.qualifiedName?.asString()?.equals(
+                JVM_WILDCARD_ANNOTATION_FQ_NAME.asString()
+            ) == true }) {
+            TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+                skipDeclarationSiteWildcards = false,
+                isForAnnotationParameter = isForAnnotationParameter,
+                fallbackMode = this,
+                needInlineClassWrapping = needInlineClassWrapping,
+                mapTypeAliases = mapTypeAliases
+            )
+        }
+        else this
+    }
+
     override fun getJavaWildcard(reference: KSTypeReference): KSTypeReference {
         val (ref, indexes) = reference.findOuterMostRef()
 
@@ -369,16 +490,35 @@ class ResolverAAImpl(
             is KSValueParameterImpl -> parent.ktValueParameterSymbol.psi
             else -> null
         } ?: return reference
+        val coneType = (ktType as KtFirType).coneType
         // val useSitePos = (reference.findParentOfType<AbstractKSDeclarationImpl>() as? AbstractKSDeclarationImpl)?.ktDeclarationSymbol?.psi
         val mode = when (position) {
-            RefPosition.RETURN_TYPE -> KtTypeMappingMode.RETURN_TYPE
-            RefPosition.SUPER_TYPE -> KtTypeMappingMode.SUPER_TYPE
-            RefPosition.PARAMETER_TYPE -> KtTypeMappingMode.VALUE_PARAMETER
-        }
+            RefPosition.RETURN_TYPE -> TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+                skipDeclarationSiteWildcards = false,
+                isForAnnotationParameter = false,
+                needInlineClassWrapping = false,
+                mapTypeAliases = false
+            )
+            RefPosition.SUPER_TYPE -> TypeMappingMode.SUPER_TYPE
+            RefPosition.PARAMETER_TYPE -> TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+                skipDeclarationSiteWildcards = true,
+                isForAnnotationParameter = false,
+                needInlineClassWrapping = false,
+                mapTypeAliases = false
+            )
+        }.updateFromParents(ref)
         return analyze {
-            ktType.asPsiType(useSitePos, true, mode, reference.isReturnTypeOfAnnotationMethod())?.let {
-                KSTypeReferenceSyntheticImpl.getCached(KSTypeImpl.getCached(it.asKtType(useSitePos)!!.upperBoundIfFlexible()), null)
-            }
+            // ktType.asPsiType(useSitePos, true, mode, reference.isReturnTypeOfAnnotationMethod())?.let { psiType ->
+
+                ktType.toWildcard(mode, reference.isReturnTypeOfAnnotationMethod())?.let {
+                    var candidate: KtType = it
+                    for (i in indexes.reversed()) {
+                        candidate = candidate.typeArguments()[i].type!!
+                    }
+                    // getKSTypeCached(candidate)
+                    KSTypeReferenceSyntheticImpl.getCached(KSTypeImpl.getCached(candidate), null)
+                }
+            // }
         } ?: reference
 
     }
