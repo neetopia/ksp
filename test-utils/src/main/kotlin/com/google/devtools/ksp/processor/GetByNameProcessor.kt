@@ -17,8 +17,10 @@ class GetByNameProcessor : AbstractTestProcessor() {
         val classNames = listOf(
             "lib1.Foo",
             "lib1.Foo.FooNested",
+            "lib2.JavaLibAnnotation",
             "source.FooInSource",
-            "source.FooInSource.FooInSourceNested"
+            "source.FooInSource.FooInSourceNested",
+            "source.JavaAnnotation"
         )
         val funNames = listOf(
             "lib1.Foo.lib1MemberFun",

@@ -55,8 +55,14 @@ class Foo  {
     fun lib2MemberFun() = 1
     val lib2MemberProp = 1.0
 }
+// FILE: JavaLibAnnotation.java
+package lib2;
 
+public @ interface JavaLibAnnotation {}
 // MODULE: main(lib1, lib2)
+// FILE: JavaAnnotation.java
+package source;
+public @ interface JavaAnnotation {}
 // FILE: a.kt
 package source
 
