@@ -36,7 +36,20 @@
 // kotlin.DeprecationLevel: ENUM_CLASS
 // kotlin.Double.Companion: OBJECT
 // END
-
+// FILE: A.kt
+class StyleApplier<X, Y>
+class StyleBuilder<out B : StyleBuilder<B, A>, out A : StyleApplier<*, *>>
+class KotlinSubject {
+    fun subject_1(builder: StyleBuilder<*, *>)  {
+    }
+}
+// FILE: B.java
+public class JavaSubject {
+    static void subject_1(StyleBuilder<?, ?> builder)  {
+    }
+    static void subject_2(StyleBuilder builder)  {
+    }
+}
 // FILE: K.kt
 class KC
 interface KI
