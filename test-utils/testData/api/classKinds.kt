@@ -36,6 +36,23 @@
 // kotlin.DeprecationLevel: ENUM_CLASS
 // kotlin.Double.Companion: OBJECT
 // END
+// FILE: MyInterface.kt
+interface MyInterface<T> {
+    val x:T
+    var y:T
+}
+
+// FILE: JavaImpl.java
+class JavaImpl implements MyInterface<Integer> {
+    public Integer getX() {
+        return 1;
+    }
+    public Integer getY() {
+        return 1;
+    }
+    public void setY(Integer value) {
+    }
+}
 
 // FILE: K.kt
 class KC
