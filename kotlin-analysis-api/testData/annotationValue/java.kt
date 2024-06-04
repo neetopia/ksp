@@ -60,8 +60,15 @@ interface MyInterface {}
 @MyAnnotation(stringParam = "2") class MyClassInLib implements MyInterface {}
 // MODULE: main(module1)
 // FILE: Test.java
+import java.lang.annotation.*;
 @MyAnnotation(stringParam = "2") class MyClass implements MyInterface {}
 
+@Target(ElementType.TYPE_USE)
+@interface MyJavaAnnotation {
+    Class<?> typeParam();
+}
+class MyJavaClass {}
+class Test extends @MyJavaAnnotation(typeParam = MyJavaClass.class) Object {}
 // FILE: a.kt
 enum class RGB {
     R, G, B

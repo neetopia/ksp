@@ -51,6 +51,9 @@ class AnnotationArgumentProcessor : AbstractTestProcessor() {
                 results.add(it.toString())
             }
         }
+        resolver.getClassDeclarationByName("Test")?.let { cls ->
+            results.add("${cls.superTypes.single().annotations.single().arguments.single().value}")
+        }
         return emptyList()
     }
 
