@@ -101,6 +101,8 @@
 // default type:A
 // flexible type star:T
 // flexible type replace argument:JS1<Int>
+// Foo<(<ERROR TYPE: MissingType>..<ERROR TYPE: MissingType>?)>
+// Foo<(<ERROR TYPE: MissingType>..<ERROR TYPE: MissingType>?)>
 // END
 
 // MODULE: lib
@@ -128,6 +130,8 @@ class JS1<T> {
 class JavaClass {
     JS1<?> p;
 }
+class Bar extends Foo<MissingType> {}
+class Foo<T> {}
 enum JSE {
     E
 }

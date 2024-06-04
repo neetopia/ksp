@@ -69,6 +69,11 @@ open class ReplaceWithErrorTypeArgsProcessor : AbstractTestProcessor() {
         val javaClass = resolver.getClassDeclarationByName("JavaClass")!!
         val genericFlexibleProperty = javaClass.getDeclaredProperties().single().type.resolve()
         results.add("flexible type replace argument:${genericFlexibleProperty.replace(zargs)}")
+        resolver.getClassDeclarationByName("Bar")!!.let { cls ->
+            val errorType = cls.superTypes.single().resolve()
+            results.add(errorType.toString())
+            results.add(errorType.replace(errorType.arguments).toString())
+        }
         return emptyList()
     }
 
