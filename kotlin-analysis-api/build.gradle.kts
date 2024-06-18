@@ -50,7 +50,7 @@ dependencies {
         "org.jetbrains.kotlin:high-level-api-fir-for-ide",
         "org.jetbrains.kotlin:high-level-api-for-ide",
         "org.jetbrains.kotlin:low-level-api-fir-for-ide",
-        "org.jetbrains.kotlin:analysis-api-providers-for-ide",
+        "org.jetbrains.kotlin:analysis-api-platform-interface-for-ide",
         "org.jetbrains.kotlin:analysis-project-structure-for-ide",
         "org.jetbrains.kotlin:symbol-light-classes-for-ide",
         "org.jetbrains.kotlin:analysis-api-standalone-for-ide",
